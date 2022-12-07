@@ -10,7 +10,7 @@ This repo is an API server that has routes for signup, sign-in, and a protected 
 
 ### Links and Resources
 
-- [deployment](https://four01-basic-auth.onrender.com)
+- [deployment](https://four01-bearer-auth.onrender.com)
 
 ### Setup
 
