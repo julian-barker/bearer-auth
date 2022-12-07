@@ -2,6 +2,7 @@
 
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const cryptoJS = require('crypto-js/sha256');
 
 const userSchema = (sequelize, DataTypes) => {
   const model = sequelize.define('User', {
@@ -10,11 +11,15 @@ const userSchema = (sequelize, DataTypes) => {
     token: {
       type: DataTypes.VIRTUAL,
       get() {
-        return jwt.sign(
+        const token =  jwt.sign(
           { username: this.username },
           process.env.SECRET,
-          { expiresIn: '24h'}
+          { expiresIn: '15m'}
         );
+        // return token;
+        const encryptedToken = cryptoJS.SHA256.encrypt(JSON.stringify(token), process.env.SECRET);
+        console.log('---------- sending ecrypted token: ', encryptedToken);
+        return encryptedToken;
       }
     }
   });
@@ -40,8 +45,11 @@ const userSchema = (sequelize, DataTypes) => {
   // Bearer AUTH: Validating a token
   model.authenticateToken = async function (token) {
     try {
-      console.log('---------- token: ', token);
-      const parsedToken = jwt.verify(token, process.env.SECRET);
+      console.log('---------- encrypted token: ', encryptedToken);
+      const decryptedToken = cryptoJS.SHA256.decrypt(JSON.parse(token), process.env.SECRET);
+      console.log('---------- decrypted token: ', decryptedToken);
+      const parsedToken = jwt.verify(decryptedToken, process.env.SECRET);
+      // const parsedToken = jwt.verify(token, process.env.SECRET);
       console.log('---------- parsedToken: ', parsedToken);
       const user = await this.findOne({ where: { username: parsedToken.username } })
       if (user) { return user; }
